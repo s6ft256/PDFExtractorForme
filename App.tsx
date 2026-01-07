@@ -104,10 +104,10 @@ const App: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <header className="mb-12 text-center">
-        <h1 className="text-5xl font-black text-white tracking-tight mb-4 drop-shadow-lg">
+        <h1 className="text-5xl font-black text-white tracking-tight mb-4 shadow-text">
           PDF Extractor
         </h1>
-        <p className="text-xl text-white/90 font-medium max-w-2xl mx-auto drop-shadow-md">
+        <p className="text-xl text-white font-medium max-w-2xl mx-auto shadow-text">
           Bulk extraction of resume data using Gemini AI.
         </p>
       </header>
@@ -209,7 +209,7 @@ const App: React.FC = () => {
         </aside>
       </div>
 
-      <footer className="mt-12 text-center text-white/60 text-xs">
+      <footer className="mt-12 text-center text-white font-medium text-xs shadow-text">
         <p>&copy; {new Date().getFullYear()} PDF Extractor.</p>
       </footer>
     </div>
