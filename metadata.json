@@ -1,0 +1,5 @@
+{
+  "name": "PDF Extractor - Resume Data Extraction Platform",
+  "description": "A professional-grade platform for bulk resume processing. Effortlessly extract candidate names and emails from PDF CVs using advanced AI. Export results to CSV, Excel, or PDF with ease.",
+  "requestFramePermissions": []
+}
