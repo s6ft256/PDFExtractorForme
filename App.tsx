@@ -107,14 +107,14 @@ const App: React.FC = () => {
         <h1 className="text-5xl font-black text-white tracking-tight mb-4 shadow-text">
           PDF Extractor
         </h1>
-        <p className="text-xl text-white font-medium max-w-2xl mx-auto shadow-text">
+        <p className="text-xl text-white font-medium max-w-2xl mx-auto shadow-text opacity-90">
           Bulk extraction of resume data using Gemini AI.
         </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         <div className="lg:col-span-2 space-y-8">
-          <section className="glass-morphism rounded-2xl overflow-hidden shadow-2xl">
+          <section className="glass-morphism rounded-3xl overflow-hidden">
             <Dropzone 
               onFilesSelected={handleFilesSelected} 
               isProcessing={isProcessingBatch} 
@@ -122,9 +122,9 @@ const App: React.FC = () => {
           </section>
 
           {candidates.length > 0 && (
-            <section className="glass-morphism rounded-2xl overflow-hidden shadow-2xl p-1">
-              <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <section className="glass-morphism rounded-3xl overflow-hidden p-1">
+              <div className="flex items-center justify-between p-6 border-b border-white/20">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <ListFilter size={20} className="text-blue-600" />
                   Extracted Data
                 </h2>
@@ -139,64 +139,64 @@ const App: React.FC = () => {
         </div>
 
         <aside className="space-y-6">
-          <div className="glass-morphism rounded-2xl shadow-2xl border border-white/30 p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center justify-between">
-              Status
-              {isProcessingBatch && <Loader2 size={18} className="animate-spin text-blue-500" />}
+          <div className="glass-morphism rounded-3xl p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center justify-between border-b border-white/20 pb-4">
+              Pipeline Status
+              {isProcessingBatch && <Loader2 size={20} className="animate-spin text-blue-600" />}
             </h3>
             
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Queue</span>
-                <span className="font-semibold text-gray-900">{stats.total}</span>
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-gray-600">Total Queue</span>
+                <span className="text-gray-900 bg-white/50 px-2 py-0.5 rounded-lg">{stats.total}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Processing</span>
-                <span className="font-semibold text-blue-600">{stats.processing}</span>
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-gray-600">Active</span>
+                <span className="text-blue-700 bg-blue-100/50 px-2 py-0.5 rounded-lg">{stats.processing}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Success</span>
-                <span className="font-semibold text-green-600">{stats.completed}</span>
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-gray-600">Success</span>
+                <span className="text-green-700 bg-green-100/50 px-2 py-0.5 rounded-lg">{stats.completed}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Errors</span>
-                <span className="font-semibold text-red-600">{stats.failed}</span>
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-gray-600">Errors</span>
+                <span className="text-red-700 bg-red-100/50 px-2 py-0.5 rounded-lg">{stats.failed}</span>
               </div>
             </div>
 
             {processingFiles.length > 0 && (
               <button 
                 onClick={clearCompleted}
-                className="w-full mt-6 py-2 px-4 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 font-medium"
+                className="w-full mt-8 py-2.5 px-4 bg-white/40 hover:bg-white/60 border border-white/40 rounded-xl text-sm text-gray-700 transition-all flex items-center justify-center gap-2 font-semibold"
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
                 Clear Queue
               </button>
             )}
           </div>
 
-          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-3 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
             {processingFiles.map((pf) => (
-              <div key={pf.id} className="bg-white/95 border border-gray-100 rounded-xl p-3 shadow-md flex flex-col gap-2 relative overflow-hidden backdrop-blur-sm">
-                {pf.status === ProcessingStatus.COMPLETED && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500" />}
-                {pf.status === ProcessingStatus.FAILED && <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500" />}
+              <div key={pf.id} className="glass-morphism-dark rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden group">
+                {pf.status === ProcessingStatus.COMPLETED && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />}
+                {pf.status === ProcessingStatus.FAILED && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
                 
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <FileText size={16} className="text-gray-400 shrink-0" />
-                    <span className="text-xs font-semibold truncate text-gray-700">{pf.file.name}</span>
+                    <FileText size={16} className="text-blue-400 shrink-0" />
+                    <span className="text-xs font-bold truncate text-white/90">{pf.file.name}</span>
                   </div>
                   <button 
                     onClick={() => removeProcessedFile(pf.id)}
-                    className="text-gray-300 hover:text-red-500"
+                    className="text-white/30 hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
 
-                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full transition-all duration-300 ${
+                    className={`h-full transition-all duration-500 ${
                       pf.status === ProcessingStatus.FAILED ? 'bg-red-500' : 
                       pf.status === ProcessingStatus.COMPLETED ? 'bg-green-500' : 'bg-blue-500'
                     }`}
@@ -209,8 +209,8 @@ const App: React.FC = () => {
         </aside>
       </div>
 
-      <footer className="mt-12 text-center text-white font-medium text-xs shadow-text">
-        <p>&copy; {new Date().getFullYear()} PDF Extractor.</p>
+      <footer className="mt-12 text-center text-white/70 font-medium text-xs shadow-text">
+        <p>&copy; {new Date().getFullYear()} PDF Extractor. Designed for speed and accuracy.</p>
       </footer>
     </div>
   );

@@ -15,19 +15,41 @@
       font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 0;
-      min-height: 100-screen;
-      background: url('https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=2070') no-repeat center center fixed;
+      min-height: 100vh;
+      background-color: #0f172a;
+    }
+    
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-image: url('https://images.unsplash.com/photo-1555255707-c07966088b7b?auto=format&fit=crop&q=80&w=2070');
       background-size: cover;
-      /* Tiny blur as requested */
-      backdrop-filter: blur(0.5px);
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 1;
+      filter: blur(0.5px);
     }
+
     .glass-morphism {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.4);
-      box-shadow: 0 15px 50px -12px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     }
+
+    .glass-morphism-dark {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    }
+
     .custom-scrollbar::-webkit-scrollbar {
       width: 4px;
     }
@@ -35,12 +57,12 @@
       background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.2);
       border-radius: 10px;
     }
-    /* Add text shadow for legibility on sharp backgrounds */
+    
     .shadow-text {
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
   </style>
 <script type="importmap">
@@ -55,7 +77,8 @@
 }
 </script>
 </head>
-<body class="text-gray-900 min-h-screen">
+<body class="text-gray-900">
+  <div id="bg-canvas"></div>
   <div id="root"></div>
 </body>
 </html>

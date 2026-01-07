@@ -2,15 +2,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ExtractionResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always use the process.env.API_KEY directly when initializing the GoogleGenAI client
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function extractResumeData(text: string): Promise<ExtractionResult> {
-  if (!process.env.API_KEY) {
-    throw new Error("API Key is missing. Please ensure process.env.API_KEY is configured.");
-  }
-
+  // Use gemini-3-pro-preview for complex text tasks like structured data extraction
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3-pro-preview',
     contents: `Extract the candidate's full name and primary email address from the following resume text. 
     If you cannot find a specific piece of information, return 'Unknown'.
     
@@ -36,7 +34,8 @@ export async function extractResumeData(text: string): Promise<ExtractionResult>
   });
 
   try {
-    const data = JSON.parse(response.text);
+    // Access response.text as a property to get the generated content
+    const data = JSON.parse(response.text || '{}');
     return data as ExtractionResult;
   } catch (error) {
     console.error("Failed to parse Gemini response:", error);
