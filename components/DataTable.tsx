@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CandidateData } from '../types';
 import { 
   Search, Download, Copy, Trash2, ArrowUpDown, Check, Mail, 
-  FileText, ChevronDown, CheckCircle2, CopyCheck, Code, Bell 
+  FileText, ChevronDown, CheckCircle2, CopyCheck, Code, Bell,
+  AlertTriangle, X
 } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
 
@@ -18,6 +19,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
   const [toast, setToast] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: keyof CandidateData, direction: 'asc' | 'desc' } | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     if (toast) {
@@ -80,8 +82,52 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
     setShowExportMenu(false);
   };
 
+  const confirmClearAll = () => {
+    onClearAll();
+    setShowClearConfirm(false);
+    setToast("Database cleared successfully");
+  };
+
   return (
     <div className="bg-transparent overflow-hidden relative">
+      {/* Custom Confirmation Modal for Clear All */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowClearConfirm(false)} />
+          <div className="relative glass-morphism border-red-500/20 rounded-[2.5rem] p-10 max-w-md w-full animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center gap-6">
+              <div className="p-4 bg-red-500/10 rounded-2xl text-red-500">
+                <AlertTriangle size={48} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-white">Clear Database?</h3>
+                <p className="text-white/40 font-medium">This action will permanently delete all extracted candidate records. This cannot be undone.</p>
+              </div>
+              <div className="flex gap-3 w-full">
+                <button 
+                  onClick={() => setShowClearConfirm(false)}
+                  className="flex-1 py-4 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all border border-white/10"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmClearAll}
+                  className="flex-1 py-4 px-6 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black transition-all shadow-lg shadow-red-600/20"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowClearConfirm(false)}
+              className="absolute top-6 right-6 p-2 text-white/20 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toast Notification System */}
       {toast && (
         <div className="fixed bottom-8 right-8 z-[100] animate-in slide-in-from-right-10 fade-in duration-300">
@@ -142,7 +188,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
           </div>
           
           <button
-            onClick={() => { if(window.confirm('Delete all entries?')) onClearAll(); }}
+            onClick={() => setShowClearConfirm(true)}
             className="px-5 py-2.5 bg-white/5 text-white/50 hover:text-red-400 hover:bg-red-400/10 border border-white/10 rounded-xl transition-all text-sm font-bold flex items-center gap-2"
           >
             <Trash2 size={18} />
