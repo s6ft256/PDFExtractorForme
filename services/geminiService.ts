@@ -1,54 +1,46 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { ExtractionResult } from "../types";
 
+// Note: API key is automatically injected via process.env.API_KEY
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function extractResumeData(text: string): Promise<ExtractionResult> {
-  // Using gemini-3-flash-preview for superior speed and high accuracy in text extraction tasks
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `You are an expert HR data parser. Your task is to extract the candidate's full name and their primary professional email address from the provided resume text.
+    contents: `Task: Extract professional contact details.
     
-    Guidelines:
-    - The name is usually at the very top.
-    - If multiple emails exist, prioritize the personal/primary one.
-    - If the text is messy due to PDF parsing (columns, headers), reason through it to find the logical contact information.
-    - If information is missing, use 'Unknown'.
+    Resume Content Block:
+    ${text.substring(0, 12000)}
     
-    Resume Content:
-    ---
-    ${text.substring(0, 15000)}
-    ---`,
+    Instructions:
+    1. Identify the candidate's Full Name (usually prominent at the top).
+    2. Identify the Primary Email Address.
+    3. If information is missing or ambiguous, use "Unknown".
+    4. Clean up any parsing artifacts (extra spaces, special characters).`,
     config: {
-      systemInstruction: "You extract structured data from resume text. Accuracy is paramount. Handle diverse formats gracefully.",
+      systemInstruction: "You are a precise HR data extraction engine. Return only the requested fields in valid JSON. Ignore irrelevant text.",
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          name: {
-            type: Type.STRING,
-            description: 'The full legal or preferred name of the candidate.',
-          },
-          email: {
-            type: Type.STRING,
-            description: 'The primary contact email address.',
-          },
+          name: { type: Type.STRING, description: 'The candidate name' },
+          email: { type: Type.STRING, description: 'The candidate email' },
         },
         required: ["name", "email"]
       },
+      temperature: 0.1, // Lower temperature for higher extraction consistency
     },
   });
 
   try {
-    const data = JSON.parse(response.text || '{}');
-    // Basic cleanup of extracted data
+    const rawText = response.text || '{}';
+    const data = JSON.parse(rawText);
     return {
       name: data.name?.trim() || 'Unknown',
       email: data.email?.toLowerCase().trim() || 'Unknown'
     };
   } catch (error) {
-    console.error("Gemini Extraction Error:", error);
-    throw new Error("Data extraction failed due to content complexity.");
+    console.error("Extraction Parsing Error:", error);
+    throw new Error("Data structure mismatch from AI response.");
   }
 }

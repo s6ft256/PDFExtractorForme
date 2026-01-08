@@ -1,6 +1,8 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { FileText, Loader2, AlertCircle, CheckCircle2, ListFilter, Trash2, RefreshCw } from 'lucide-react';
+import { 
+  FileText, Loader2, CheckCircle2, ListFilter, Trash2, 
+  RefreshCw, ShieldCheck, Globe, Zap, Cpu
+} from 'lucide-react';
 import Dropzone from './components/Dropzone';
 import DataTable from './components/DataTable';
 import { ProcessingFile, ProcessingStatus, CandidateData } from './types';
@@ -11,7 +13,17 @@ const App: React.FC = () => {
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const processingRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Simple verification check
+    if (process.env.API_KEY) {
+      setApiStatus('connected');
+    } else {
+      setApiStatus('error');
+    }
+  }, []);
 
   const handleFilesSelected = (files: File[]) => {
     const newFiles: ProcessingFile[] = files.map(file => ({
@@ -49,12 +61,11 @@ const App: React.FC = () => {
       };
 
       setCandidates(prev => {
-        // More robust deduplication logic
-        const exists = prev.some(c => 
+        const isDuplicate = prev.some(c => 
           (c.email.toLowerCase() === candidate.email.toLowerCase() && candidate.email !== 'Unknown') ||
           (c.name.toLowerCase() === candidate.name.toLowerCase() && c.email === candidate.email)
         );
-        if (exists) return prev;
+        if (isDuplicate) return prev;
         return [candidate, ...prev];
       });
 
@@ -63,7 +74,7 @@ const App: React.FC = () => {
       ));
     } catch (err: any) {
       setProcessingFiles(prev => prev.map(f => 
-        f.id === processingFile.id ? { ...f, status: ProcessingStatus.FAILED, error: err.message || 'Processing failed' } : f
+        f.id === processingFile.id ? { ...f, status: ProcessingStatus.FAILED, error: err.message || 'Processing error' } : f
       ));
     } finally {
       processingRef.current.delete(processingFile.id);
@@ -81,8 +92,7 @@ const App: React.FC = () => {
     if (idleFiles.length > 0 && !isProcessingBatch) {
       const processBatch = async () => {
         setIsProcessingBatch(true);
-        // Faster throughput with higher concurrency (Gemini 3 Flash handles this well)
-        const concurrentLimit = 6;
+        const concurrentLimit = 8; // Higher concurrency for Flash model
         for (let i = 0; i < idleFiles.length; i += concurrentLimit) {
           const batch = idleFiles.slice(i, i + concurrentLimit);
           await Promise.all(batch.map(processFile));
@@ -93,20 +103,6 @@ const App: React.FC = () => {
     }
   }, [processingFiles, isProcessingBatch]);
 
-  const removeProcessedFile = (id: string) => {
-    setProcessingFiles(prev => prev.filter(f => f.id !== id));
-  };
-
-  const clearCompleted = () => {
-    setProcessingFiles(prev => prev.filter(f => 
-      f.status !== ProcessingStatus.COMPLETED && f.status !== ProcessingStatus.FAILED
-    ));
-  };
-
-  const deleteCandidate = (id: string) => {
-    setCandidates(prev => prev.filter(c => c.id !== id));
-  };
-
   const stats = {
     total: processingFiles.length,
     completed: processingFiles.filter(f => f.status === ProcessingStatus.COMPLETED).length,
@@ -116,18 +112,27 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <header className="mb-12 text-center">
-        <h1 className="text-5xl font-black text-white tracking-tight mb-4 shadow-text">
+      <header className="mb-12 text-center relative">
+        {/* Status Indicator for Render/Hosting */}
+        <div className="absolute top-0 right-0 hidden md:flex items-center gap-3 glass-morphism px-4 py-2 rounded-2xl border border-white/20">
+          <div className={`w-2 h-2 rounded-full ${apiStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-700">
+            {apiStatus === 'connected' ? 'API Active' : 'API Missing'}
+          </span>
+        </div>
+
+        <h1 className="text-6xl font-black text-white tracking-tight mb-4 shadow-text flex items-center justify-center gap-4">
+          <Cpu className="text-blue-400" size={48} />
           PDF Extractor
         </h1>
-        <p className="text-xl text-white font-medium max-w-2xl mx-auto shadow-text opacity-90">
-          Professional Bulk Resume Processing Engine
+        <p className="text-xl text-white font-medium max-w-2xl mx-auto shadow-text opacity-80 uppercase tracking-[0.2em] text-[12px]">
+          Next-Gen Intelligence for Talent Acquisition
         </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         <div className="lg:col-span-2 space-y-8">
-          <section className="glass-morphism rounded-3xl overflow-hidden transition-all duration-500">
+          <section className="glass-morphism rounded-[2.5rem] overflow-hidden transition-all duration-700 hover:shadow-3xl group">
             <Dropzone 
               onFilesSelected={handleFilesSelected} 
               isProcessing={isProcessingBatch} 
@@ -135,21 +140,22 @@ const App: React.FC = () => {
           </section>
 
           {candidates.length > 0 && (
-            <section className="glass-morphism rounded-3xl overflow-hidden p-1 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="flex items-center justify-between p-6 border-b border-white/20 bg-white/5">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <ListFilter size={20} className="text-blue-600" />
-                  Extracted Candidates
+            <section className="glass-morphism rounded-[2.5rem] overflow-hidden p-1 shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <div className="flex items-center justify-between p-8 border-b border-white/20 bg-white/5">
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+                  <Globe size={24} className="text-blue-600" />
+                  Candidate Database
                 </h2>
                 <div className="flex items-center gap-2">
-                   <span className="text-[10px] font-black uppercase text-gray-500 bg-white/30 px-2 py-1 rounded-md">
-                     Live Updates Enabled
+                   <Zap size={16} className="text-yellow-500 fill-yellow-500" />
+                   <span className="text-[10px] font-black uppercase text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                     Supercharged by Gemini 3 Flash
                    </span>
                 </div>
               </div>
               <DataTable 
                 data={candidates} 
-                onDelete={deleteCandidate} 
+                onDelete={(id) => setCandidates(prev => prev.filter(c => c.id !== id))} 
                 onClearAll={() => setCandidates([])} 
               />
             </section>
@@ -157,83 +163,82 @@ const App: React.FC = () => {
         </div>
 
         <aside className="space-y-6">
-          <div className="glass-morphism rounded-3xl p-6 sticky top-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center justify-between border-b border-white/20 pb-4">
-              Queue Status
-              {isProcessingBatch && <Loader2 size={20} className="animate-spin text-blue-600" />}
-            </h3>
+          <div className="glass-morphism rounded-[2rem] p-8 sticky top-8 border-t border-white/60">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5">
+              <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                <ShieldCheck className="text-green-600" size={20} />
+                System Health
+              </h3>
+              {isProcessingBatch && <Loader2 size={24} className="animate-spin text-blue-600" />}
+            </div>
             
-            <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-gray-600">Pending</span>
-                <span className="text-gray-900 bg-white/50 px-2.5 py-0.5 rounded-lg border border-white/20">{stats.total}</span>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Queue Size</span>
+                <span className="text-xl font-black text-gray-900">{stats.total}</span>
               </div>
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-gray-600">Active Threads</span>
-                <span className="text-blue-700 bg-blue-100/50 px-2.5 py-0.5 rounded-lg border border-blue-200/50">{stats.processing}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Active</span>
+                <span className="text-xl font-black text-blue-600">{stats.processing}</span>
               </div>
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-gray-600">Extracted</span>
-                <span className="text-green-700 bg-green-100/50 px-2.5 py-0.5 rounded-lg border border-green-200/50">{stats.completed}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Verified</span>
+                <span className="text-xl font-black text-green-600">{stats.completed}</span>
               </div>
-              {stats.failed > 0 && (
-                <div className="flex justify-between items-center text-sm font-medium">
-                  <span className="text-gray-600">Issues</span>
-                  <span className="text-red-700 bg-red-100/50 px-2.5 py-0.5 rounded-lg border border-red-200/50">{stats.failed}</span>
-                </div>
-              )}
             </div>
 
-            <div className="grid grid-cols-1 gap-2 mt-8">
+            <div className="mt-10 space-y-3">
               {stats.failed > 0 && (
                 <button 
                   onClick={retryFailed}
-                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm transition-all flex items-center justify-center gap-2 font-semibold shadow-lg shadow-blue-600/20"
+                  className="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm transition-all flex items-center justify-center gap-3 font-black shadow-xl shadow-blue-600/30 active:scale-95"
                 >
-                  <RefreshCw size={16} />
-                  Retry Failed
+                  <RefreshCw size={20} />
+                  Retry Failed Jobs
                 </button>
               )}
               {processingFiles.length > 0 && (
                 <button 
-                  onClick={clearCompleted}
-                  className="w-full py-2.5 px-4 bg-white/40 hover:bg-white/60 border border-white/40 rounded-xl text-sm text-gray-700 transition-all flex items-center justify-center gap-2 font-semibold"
+                  onClick={() => setProcessingFiles(prev => prev.filter(f => f.status !== ProcessingStatus.COMPLETED && f.status !== ProcessingStatus.FAILED))}
+                  className="w-full py-4 px-6 bg-white/50 hover:bg-white text-gray-800 border border-white/60 rounded-2xl text-sm transition-all flex items-center justify-center gap-3 font-bold active:scale-95"
                 >
-                  <Trash2 size={16} />
-                  Clear History
+                  <Trash2 size={20} />
+                  Flush History
                 </button>
               )}
             </div>
           </div>
 
-          <div className="space-y-3 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {processingFiles.map((pf) => (
-              <div key={pf.id} className="glass-morphism-dark rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden group border border-white/10 hover:border-white/30 transition-all">
-                {pf.status === ProcessingStatus.COMPLETED && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />}
-                {pf.status === ProcessingStatus.FAILED && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
+              <div key={pf.id} className="glass-morphism-dark rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden group border border-white/10 hover:border-white/40 transition-all hover:-translate-y-1">
+                {pf.status === ProcessingStatus.COMPLETED && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-green-500" />}
+                {pf.status === ProcessingStatus.FAILED && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500" />}
                 
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <FileText size={16} className={`${pf.status === ProcessingStatus.FAILED ? 'text-red-400' : 'text-blue-400'} shrink-0`} />
-                    <span className="text-xs font-bold truncate text-white/90">{pf.file.name}</span>
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className={`p-2 rounded-xl ${pf.status === ProcessingStatus.FAILED ? 'bg-red-500/20' : 'bg-blue-500/20'}`}>
+                      <FileText size={18} className={pf.status === ProcessingStatus.FAILED ? 'text-red-400' : 'text-blue-400'} />
+                    </div>
+                    <span className="text-sm font-black truncate text-white/90">{pf.file.name}</span>
                   </div>
                   <button 
-                    onClick={() => removeProcessedFile(pf.id)}
-                    className="text-white/30 hover:text-red-400 transition-colors"
+                    onClick={() => setProcessingFiles(prev => prev.filter(f => f.id !== pf.id))}
+                    className="text-white/20 hover:text-red-400 transition-colors p-1"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
 
                 {pf.error ? (
-                  <p className="text-[10px] text-red-300 font-medium bg-red-900/20 p-1.5 rounded-lg border border-red-500/20">
+                  <p className="text-[10px] text-red-300 font-bold bg-red-950/40 p-3 rounded-xl border border-red-500/20 italic">
                     {pf.error}
                   </p>
                 ) : (
-                  <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5">
                     <div 
-                      className={`h-full transition-all duration-500 ${
-                        pf.status === ProcessingStatus.COMPLETED ? 'bg-green-500' : 'bg-blue-500'
+                      className={`h-full transition-all duration-700 ease-out ${
+                        pf.status === ProcessingStatus.COMPLETED ? 'bg-green-500' : 'bg-gradient-to-r from-blue-600 to-indigo-500'
                       }`}
                       style={{ width: `${pf.progress}%` }}
                     />
@@ -245,8 +250,8 @@ const App: React.FC = () => {
         </aside>
       </div>
 
-      <footer className="mt-12 text-center text-white/70 font-medium text-xs shadow-text">
-        <p>&copy; {new Date().getFullYear()} PDF Extractor. Optimized for Enterprise Performance.</p>
+      <footer className="mt-16 text-center text-white/50 font-black text-[10px] uppercase tracking-[0.4em] shadow-text">
+        <p>&copy; {new Date().getFullYear()} PDF EXTRACTOR PRO • HOSTING READY • CLOUD OPTIMIZED</p>
       </footer>
     </div>
   );

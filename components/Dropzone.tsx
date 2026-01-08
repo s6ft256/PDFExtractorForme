@@ -23,7 +23,8 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFilesSelected, isProcessing }) =>
     setIsDragging(false);
     if (isProcessing) return;
 
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+    // Fix: Explicitly cast to File[] to avoid 'unknown' type error in TS
+    const files = (Array.from(e.dataTransfer.files) as File[]).filter(f => f.type === 'application/pdf');
     if (files.length > 0) {
       onFilesSelected(files);
     }
@@ -31,7 +32,8 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFilesSelected, isProcessing }) =>
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const files = Array.from(e.target.files).filter(f => f.type === 'application/pdf');
+      // Fix: Explicitly cast to File[] to avoid 'unknown' type error in TS
+      const files = (Array.from(e.target.files) as File[]).filter(f => f.type === 'application/pdf');
       onFilesSelected(files);
       e.target.value = ''; // Reset for same file selection
     }

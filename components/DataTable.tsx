@@ -1,7 +1,9 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CandidateData } from '../types';
-import { Search, Download, Copy, Trash2, ArrowUpDown, Check, Mail, FileText, ChevronDown, CheckCircle2, CopyCheck } from 'lucide-react';
+import { 
+  Search, Download, Copy, Trash2, ArrowUpDown, Check, Mail, 
+  FileText, ChevronDown, CheckCircle2, CopyCheck, Code, Bell 
+} from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
 
 interface DataTableProps {
@@ -13,9 +15,16 @@ interface DataTableProps {
 const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [copiedAll, setCopiedAll] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: keyof CandidateData, direction: 'asc' | 'desc' } | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const filteredData = useMemo(() => {
     let result = [...data];
@@ -27,7 +36,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
         item.filename.toLowerCase().includes(lowerSearch)
       );
     }
-
     if (sortConfig) {
       result.sort((a, b) => {
         const valA = String(a[sortConfig.key]).toLowerCase();
@@ -37,7 +45,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
         return 0;
       });
     }
-
     return result;
   }, [data, searchTerm, sortConfig]);
 
@@ -49,22 +56,42 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
     setSortConfig({ key, direction });
   };
 
-  const copyToClipboard = (text: string, id: string) => {
+  const copyToClipboard = (text: string, id: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    setToast(`${label} copied!`);
     setTimeout(() => setCopiedId(null), 1500);
   };
 
   const copyAllToClipboard = () => {
     if (filteredData.length === 0) return;
-    const text = filteredData.map(c => `${c.name}, ${c.email}`).join('\n');
+    const text = filteredData.map(c => `${c.name}\t${c.email}`).join('\n');
     navigator.clipboard.writeText(text);
-    setCopiedAll(true);
-    setTimeout(() => setCopiedAll(false), 2000);
+    setToast("Full list copied to clipboard!");
+  };
+
+  const exportToJSON = () => {
+    const jsonString = JSON.stringify(filteredData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `candidates_${Date.now()}.json`;
+    link.click();
+    setShowExportMenu(false);
   };
 
   return (
-    <div className="bg-transparent overflow-hidden">
+    <div className="bg-transparent overflow-hidden relative">
+      {/* Toast Notification System */}
+      {toast && (
+        <div className="fixed bottom-8 right-8 z-[100] animate-in slide-in-from-right-10 fade-in duration-300">
+          <div className="bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10 backdrop-blur-xl">
+            <Bell size={18} className="text-blue-400" />
+            <span className="font-bold text-sm">{toast}</span>
+          </div>
+        </div>
+      )}
+
       <div className="p-6 border-b border-white/20 flex flex-col lg:flex-row justify-between items-center gap-4">
         <div className="relative w-full lg:w-96">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -72,23 +99,21 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Filter results..."
+            placeholder="Search by name or email..."
             className="w-full pl-12 pr-4 py-2.5 bg-white/40 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all text-sm font-medium placeholder-gray-500"
           />
         </div>
         
-        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+        <div className="flex items-center gap-2 w-full lg:w-auto">
           <button
             onClick={copyAllToClipboard}
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-bold border border-white/40 shadow-sm
-              ${copiedAll ? 'bg-green-600 text-white border-green-700' : 'bg-white/40 text-gray-700 hover:bg-white/60'}
-            `}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-bold border border-white/40 shadow-sm bg-white/40 text-gray-700 hover:bg-white/60"
           >
-            {copiedAll ? <CopyCheck size={18} /> : <Copy size={18} />}
-            {copiedAll ? 'Copied List!' : 'Copy All'}
+            <Copy size={18} />
+            Copy All
           </button>
 
-          <div className="relative flex-1 lg:flex-none min-w-[140px]">
+          <div className="relative flex-1 lg:flex-none">
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all w-full text-sm font-bold shadow-lg shadow-blue-600/20"
@@ -99,24 +124,18 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
             </button>
             
             {showExportMenu && (
-              <div className="absolute right-0 mt-3 w-56 bg-white/90 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <button 
-                  onClick={() => { exportToCSV(filteredData); setShowExportMenu(false); }}
-                  className="w-full px-5 py-3 text-left text-sm hover:bg-blue-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors"
-                >
-                  <FileText size={18} className="text-gray-500" /> Export CSV
+              <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <button onClick={() => { exportToCSV(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-blue-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors">
+                  <FileText size={18} className="text-gray-400" /> Export CSV
                 </button>
-                <button 
-                  onClick={() => { exportToExcel(filteredData); setShowExportMenu(false); }}
-                  className="w-full px-5 py-3 text-left text-sm hover:bg-green-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100"
-                >
+                <button onClick={() => { exportToExcel(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-green-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100">
                   <FileText size={18} className="text-green-600" /> Export Excel
                 </button>
-                <button 
-                  onClick={() => { exportToPDF(filteredData); setShowExportMenu(false); }}
-                  className="w-full px-5 py-3 text-left text-sm hover:bg-red-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100"
-                >
+                <button onClick={() => { exportToPDF(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-red-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100">
                   <FileText size={18} className="text-red-500" /> Export PDF
+                </button>
+                <button onClick={exportToJSON} className="w-full px-5 py-3 text-left text-sm hover:bg-purple-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100">
+                  <Code size={18} className="text-purple-600" /> Export JSON
                 </button>
               </div>
             )}
@@ -134,54 +153,56 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-white/20 text-gray-600 text-[10px] font-bold uppercase tracking-widest border-b border-white/20">
+            <tr className="bg-white/20 text-gray-600 text-[10px] font-black uppercase tracking-widest border-b border-white/20">
               <th className="px-8 py-5 cursor-pointer hover:bg-white/30 transition-colors" onClick={() => handleSort('name')}>
-                <div className="flex items-center gap-2">Name <ArrowUpDown size={14} className="opacity-50" /></div>
+                <div className="flex items-center gap-2">Name <ArrowUpDown size={14} className="opacity-30" /></div>
               </th>
               <th className="px-8 py-5 cursor-pointer hover:bg-white/30 transition-colors" onClick={() => handleSort('email')}>
-                <div className="flex items-center gap-2">Email <ArrowUpDown size={14} className="opacity-50" /></div>
+                <div className="flex items-center gap-2">Email <ArrowUpDown size={14} className="opacity-30" /></div>
               </th>
               <th className="px-8 py-5 cursor-pointer hover:bg-white/30 transition-colors" onClick={() => handleSort('filename')}>
-                <div className="flex items-center gap-2">Source <ArrowUpDown size={14} className="opacity-50" /></div>
+                <div className="flex items-center gap-2">Source <ArrowUpDown size={14} className="opacity-30" /></div>
               </th>
               <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/20 text-sm">
+          <tbody className="divide-y divide-white/10 text-sm">
             {filteredData.length > 0 ? (
               filteredData.map((candidate) => (
-                <tr key={candidate.id} className="hover:bg-white/30 transition-colors group">
+                <tr key={candidate.id} className="hover:bg-white/40 transition-all group duration-300">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-500/20">
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xl shadow-blue-500/10">
                         {candidate.name.charAt(0)}
                       </div>
                       <span className="font-bold text-gray-900">{candidate.name}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-gray-700 font-medium">
-                    <div className="flex items-center gap-2 group/email cursor-pointer" onClick={() => copyToClipboard(candidate.email, `e-${candidate.id}`)}>
-                      <Mail size={16} className={`transition-colors ${copiedId === `e-${candidate.id}` ? 'text-green-600' : 'text-blue-500 opacity-60'}`} />
-                      <span className={copiedId === `e-${candidate.id}` ? 'text-green-600' : ''}>{candidate.email}</span>
-                      {copiedId === `e-${candidate.id}` && <Check size={12} className="text-green-600 animate-in fade-in" />}
-                    </div>
+                  <td className="px-8 py-5">
+                    <button 
+                      onClick={() => copyToClipboard(candidate.email, `e-${candidate.id}`, 'Email')}
+                      className="flex items-center gap-2 group/email text-gray-700 font-medium hover:text-blue-600 transition-colors"
+                    >
+                      <Mail size={16} className={`transition-all ${copiedId === `e-${candidate.id}` ? 'text-green-600 scale-110' : 'text-blue-500 opacity-60'}`} />
+                      <span className={copiedId === `e-${candidate.id}` ? 'text-green-600 font-bold' : ''}>{candidate.email}</span>
+                    </button>
                   </td>
-                  <td className="px-8 py-5 text-gray-600 font-medium opacity-80 italic truncate max-w-[200px]" title={candidate.filename}>
+                  <td className="px-8 py-5 text-gray-600 font-medium opacity-70 italic truncate max-w-[200px]" title={candidate.filename}>
                     {candidate.filename}
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
                       <button
-                        onClick={() => copyToClipboard(`${candidate.name} <${candidate.email}>`, candidate.id)}
+                        onClick={() => copyToClipboard(`${candidate.name} <${candidate.email}>`, candidate.id, 'Candidate info')}
                         className="p-2.5 text-gray-500 hover:text-blue-600 bg-white/50 hover:bg-white rounded-xl transition-all shadow-sm border border-white/20"
-                        title="Copy contact"
+                        title="Copy to clipboard"
                       >
                         {copiedId === candidate.id ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
                       </button>
                       <button
                         onClick={() => onDelete(candidate.id)}
                         className="p-2.5 text-gray-500 hover:text-red-600 bg-white/50 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-white/20"
-                        title="Remove candidate"
+                        title="Delete"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -191,10 +212,15 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-8 py-20 text-center text-gray-600">
-                  <div className="flex flex-col items-center gap-4 opacity-50">
-                    <Search size={48} className="text-gray-400" />
-                    <p className="font-bold text-lg">{searchTerm ? 'No matches found.' : 'Your extraction list is empty.'}</p>
+                <td colSpan={4} className="px-8 py-24 text-center">
+                  <div className="flex flex-col items-center gap-6 opacity-40">
+                    <div className="p-8 bg-white/20 rounded-full animate-pulse">
+                      <Search size={64} className="text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="font-black text-2xl text-gray-800">No data available</p>
+                      <p className="text-gray-600 mt-2 font-medium">Upload resumes to begin automated extraction</p>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -203,9 +229,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
         </table>
       </div>
       
-      <div className="px-8 py-5 border-t border-white/20 bg-white/10 text-[10px] font-black uppercase tracking-widest text-gray-600 flex justify-between items-center">
-        <span>Displaying {filteredData.length} Records</span>
-        <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Multi-pass AI Verification</span>
+      <div className="px-8 py-5 border-t border-white/20 bg-white/5 text-[10px] font-black uppercase tracking-widest text-gray-600 flex justify-between items-center backdrop-blur-md">
+        <span className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          {filteredData.length} records in current view
+        </span>
+        <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-600" /> Enterprise Data Sync Ready</span>
       </div>
     </div>
   );
