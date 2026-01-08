@@ -1,8 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { CandidateData } from '../types';
-// Added CheckCircle2 to the imports from lucide-react
-import { Search, Download, Copy, Trash2, ArrowUpDown, Check, Mail, FileText, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Search, Download, Copy, Trash2, ArrowUpDown, Check, Mail, FileText, ChevronDown, CheckCircle2, CopyCheck } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
 
 interface DataTableProps {
@@ -14,6 +13,7 @@ interface DataTableProps {
 const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: keyof CandidateData, direction: 'asc' | 'desc' } | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
@@ -52,7 +52,15 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    setTimeout(() => setCopiedId(null), 1500);
+  };
+
+  const copyAllToClipboard = () => {
+    if (filteredData.length === 0) return;
+    const text = filteredData.map(c => `${c.name}, ${c.email}`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
   };
 
   return (
@@ -64,16 +72,26 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search candidates..."
+            placeholder="Filter results..."
             className="w-full pl-12 pr-4 py-2.5 bg-white/40 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all text-sm font-medium placeholder-gray-500"
           />
         </div>
         
-        <div className="flex items-center gap-3 w-full lg:w-auto">
-          <div className="relative flex-1 lg:flex-none">
+        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+          <button
+            onClick={copyAllToClipboard}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-bold border border-white/40 shadow-sm
+              ${copiedAll ? 'bg-green-600 text-white border-green-700' : 'bg-white/40 text-gray-700 hover:bg-white/60'}
+            `}
+          >
+            {copiedAll ? <CopyCheck size={18} /> : <Copy size={18} />}
+            {copiedAll ? 'Copied List!' : 'Copy All'}
+          </button>
+
+          <div className="relative flex-1 lg:flex-none min-w-[140px]">
             <button
               onClick={() => setShowExportMenu(!showExportMenu)}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all w-full text-sm font-bold shadow-lg shadow-blue-600/20"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all w-full text-sm font-bold shadow-lg shadow-blue-600/20"
             >
               <Download size={18} />
               Export
@@ -105,11 +123,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
           </div>
           
           <button
-            onClick={onClearAll}
-            className="px-6 py-2.5 bg-white/40 text-gray-700 hover:text-red-600 hover:bg-red-50/50 border border-white/40 rounded-xl transition-all text-sm font-bold flex items-center gap-2"
+            onClick={() => { if(window.confirm('Delete all entries?')) onClearAll(); }}
+            className="px-5 py-2.5 bg-white/40 text-gray-700 hover:text-red-600 hover:bg-red-50/50 border border-white/40 rounded-xl transition-all text-sm font-bold flex items-center gap-2"
           >
             <Trash2 size={18} />
-            Clear
           </button>
         </div>
       </div>
@@ -143,12 +160,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
                     </div>
                   </td>
                   <td className="px-8 py-5 text-gray-700 font-medium">
-                    <div className="flex items-center gap-2">
-                      <Mail size={16} className="text-blue-500 opacity-60" />
-                      {candidate.email}
+                    <div className="flex items-center gap-2 group/email cursor-pointer" onClick={() => copyToClipboard(candidate.email, `e-${candidate.id}`)}>
+                      <Mail size={16} className={`transition-colors ${copiedId === `e-${candidate.id}` ? 'text-green-600' : 'text-blue-500 opacity-60'}`} />
+                      <span className={copiedId === `e-${candidate.id}` ? 'text-green-600' : ''}>{candidate.email}</span>
+                      {copiedId === `e-${candidate.id}` && <Check size={12} className="text-green-600 animate-in fade-in" />}
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-gray-600 font-medium opacity-80 italic">
+                  <td className="px-8 py-5 text-gray-600 font-medium opacity-80 italic truncate max-w-[200px]" title={candidate.filename}>
                     {candidate.filename}
                   </td>
                   <td className="px-8 py-5 text-right">
@@ -176,7 +194,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
                 <td colSpan={4} className="px-8 py-20 text-center text-gray-600">
                   <div className="flex flex-col items-center gap-4 opacity-50">
                     <Search size={48} className="text-gray-400" />
-                    <p className="font-bold text-lg">{searchTerm ? 'No results found.' : 'Waiting for resumes...'}</p>
+                    <p className="font-bold text-lg">{searchTerm ? 'No matches found.' : 'Your extraction list is empty.'}</p>
                   </div>
                 </td>
               </tr>
@@ -186,9 +204,8 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
       </div>
       
       <div className="px-8 py-5 border-t border-white/20 bg-white/10 text-[10px] font-black uppercase tracking-widest text-gray-600 flex justify-between items-center">
-        <span>{filteredData.length} Candidates Loaded</span>
-        {/* Fixed missing CheckCircle2 reference */}
-        <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> AI-Powered Deduplication</span>
+        <span>Displaying {filteredData.length} Records</span>
+        <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Multi-pass AI Verification</span>
       </div>
     </div>
   );
