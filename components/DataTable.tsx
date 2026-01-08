@@ -94,20 +94,20 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
 
       <div className="p-6 border-b border-white/20 flex flex-col lg:flex-row justify-between items-center gap-4">
         <div className="relative w-full lg:w-96">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={18} />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name or email..."
-            className="w-full pl-12 pr-4 py-2.5 bg-white/40 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all text-sm font-medium placeholder-gray-500"
+            className="w-full pl-12 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-sm transition-all text-sm font-medium placeholder-white/30 text-white"
           />
         </div>
         
         <div className="flex items-center gap-2 w-full lg:w-auto">
           <button
             onClick={copyAllToClipboard}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-bold border border-white/40 shadow-sm bg-white/40 text-gray-700 hover:bg-white/60"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-bold border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
           >
             <Copy size={18} />
             Copy All
@@ -124,18 +124,18 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
             </button>
             
             {showExportMenu && (
-              <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <button onClick={() => { exportToCSV(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-blue-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors">
-                  <FileText size={18} className="text-gray-400" /> Export CSV
+              <div className="absolute right-0 mt-3 w-56 bg-[#0f172a] backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <button onClick={() => { exportToCSV(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 flex items-center gap-3 font-semibold text-white/70 transition-colors">
+                  <FileText size={18} className="text-white/30" /> Export CSV
                 </button>
-                <button onClick={() => { exportToExcel(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-green-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100">
-                  <FileText size={18} className="text-green-600" /> Export Excel
+                <button onClick={() => { exportToExcel(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 flex items-center gap-3 font-semibold text-white/70 transition-colors border-t border-white/5">
+                  <FileText size={18} className="text-blue-400" /> Export Excel
                 </button>
-                <button onClick={() => { exportToPDF(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-red-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100">
-                  <FileText size={18} className="text-red-500" /> Export PDF
+                <button onClick={() => { exportToPDF(filteredData); setShowExportMenu(false); }} className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 flex items-center gap-3 font-semibold text-white/70 transition-colors border-t border-white/5">
+                  <FileText size={18} className="text-red-400" /> Export PDF
                 </button>
-                <button onClick={exportToJSON} className="w-full px-5 py-3 text-left text-sm hover:bg-purple-50 flex items-center gap-3 font-semibold text-gray-700 transition-colors border-t border-gray-100">
-                  <Code size={18} className="text-purple-600" /> Export JSON
+                <button onClick={exportToJSON} className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 flex items-center gap-3 font-semibold text-white/70 transition-colors border-t border-white/5">
+                  <Code size={18} className="text-purple-400" /> Export JSON
                 </button>
               </div>
             )}
@@ -143,7 +143,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
           
           <button
             onClick={() => { if(window.confirm('Delete all entries?')) onClearAll(); }}
-            className="px-5 py-2.5 bg-white/40 text-gray-700 hover:text-red-600 hover:bg-red-50/50 border border-white/40 rounded-xl transition-all text-sm font-bold flex items-center gap-2"
+            className="px-5 py-2.5 bg-white/5 text-white/50 hover:text-red-400 hover:bg-red-400/10 border border-white/10 rounded-xl transition-all text-sm font-bold flex items-center gap-2"
           >
             <Trash2 size={18} />
           </button>
@@ -153,14 +153,14 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-white/20 text-gray-600 text-[10px] font-black uppercase tracking-widest border-b border-white/20">
-              <th className="px-8 py-5 cursor-pointer hover:bg-white/30 transition-colors" onClick={() => handleSort('name')}>
+            <tr className="bg-white/5 text-white/30 text-[10px] font-black uppercase tracking-widest border-b border-white/10">
+              <th className="px-8 py-5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleSort('name')}>
                 <div className="flex items-center gap-2">Name <ArrowUpDown size={14} className="opacity-30" /></div>
               </th>
-              <th className="px-8 py-5 cursor-pointer hover:bg-white/30 transition-colors" onClick={() => handleSort('email')}>
+              <th className="px-8 py-5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleSort('email')}>
                 <div className="flex items-center gap-2">Email <ArrowUpDown size={14} className="opacity-30" /></div>
               </th>
-              <th className="px-8 py-5 cursor-pointer hover:bg-white/30 transition-colors" onClick={() => handleSort('filename')}>
+              <th className="px-8 py-5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => handleSort('filename')}>
                 <div className="flex items-center gap-2">Source <ArrowUpDown size={14} className="opacity-30" /></div>
               </th>
               <th className="px-8 py-5 text-right">Actions</th>
@@ -169,39 +169,39 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
           <tbody className="divide-y divide-white/10 text-sm">
             {filteredData.length > 0 ? (
               filteredData.map((candidate) => (
-                <tr key={candidate.id} className="hover:bg-white/40 transition-all group duration-300">
+                <tr key={candidate.id} className="hover:bg-white/5 transition-all group duration-300">
                   <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xl shadow-blue-500/10">
                         {candidate.name.charAt(0)}
                       </div>
-                      <span className="font-bold text-gray-900">{candidate.name}</span>
+                      <span className="font-bold text-white/90">{candidate.name}</span>
                     </div>
                   </td>
                   <td className="px-8 py-5">
                     <button 
                       onClick={() => copyToClipboard(candidate.email, `e-${candidate.id}`, 'Email')}
-                      className="flex items-center gap-2 group/email text-gray-700 font-medium hover:text-blue-600 transition-colors"
+                      className="flex items-center gap-2 group/email text-white/70 font-medium hover:text-blue-400 transition-colors"
                     >
-                      <Mail size={16} className={`transition-all ${copiedId === `e-${candidate.id}` ? 'text-green-600 scale-110' : 'text-blue-500 opacity-60'}`} />
-                      <span className={copiedId === `e-${candidate.id}` ? 'text-green-600 font-bold' : ''}>{candidate.email}</span>
+                      <Mail size={16} className={`transition-all ${copiedId === `e-${candidate.id}` ? 'text-blue-400 scale-110' : 'text-blue-500 opacity-60'}`} />
+                      <span className={copiedId === `e-${candidate.id}` ? 'text-blue-400 font-bold' : ''}>{candidate.email}</span>
                     </button>
                   </td>
-                  <td className="px-8 py-5 text-gray-600 font-medium opacity-70 italic truncate max-w-[200px]" title={candidate.filename}>
+                  <td className="px-8 py-5 text-white/40 font-medium italic truncate max-w-[200px]" title={candidate.filename}>
                     {candidate.filename}
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
                       <button
                         onClick={() => copyToClipboard(`${candidate.name} <${candidate.email}>`, candidate.id, 'Candidate info')}
-                        className="p-2.5 text-gray-500 hover:text-blue-600 bg-white/50 hover:bg-white rounded-xl transition-all shadow-sm border border-white/20"
+                        className="p-2.5 text-white/30 hover:text-blue-400 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5"
                         title="Copy to clipboard"
                       >
-                        {copiedId === candidate.id ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+                        {copiedId === candidate.id ? <Check size={18} className="text-blue-400" /> : <Copy size={18} />}
                       </button>
                       <button
                         onClick={() => onDelete(candidate.id)}
-                        className="p-2.5 text-gray-500 hover:text-red-600 bg-white/50 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-white/20"
+                        className="p-2.5 text-white/30 hover:text-red-400 bg-white/5 hover:bg-red-400/10 rounded-xl transition-all border border-white/5"
                         title="Delete"
                       >
                         <Trash2 size={18} />
@@ -213,13 +213,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
             ) : (
               <tr>
                 <td colSpan={4} className="px-8 py-24 text-center">
-                  <div className="flex flex-col items-center gap-6 opacity-40">
-                    <div className="p-8 bg-white/20 rounded-full animate-pulse">
-                      <Search size={64} className="text-gray-400" />
+                  <div className="flex flex-col items-center gap-6 opacity-20">
+                    <div className="p-8 bg-white/5 rounded-full">
+                      <Search size={64} className="text-white" />
                     </div>
                     <div>
-                      <p className="font-black text-2xl text-gray-800">No data available</p>
-                      <p className="text-gray-600 mt-2 font-medium">Upload resumes to begin automated extraction</p>
+                      <p className="font-black text-2xl text-white">No data available</p>
+                      <p className="text-white/60 mt-2 font-medium">Upload resumes to begin automated extraction</p>
                     </div>
                   </div>
                 </td>
@@ -229,12 +229,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, onDelete, onClearAll }) => 
         </table>
       </div>
       
-      <div className="px-8 py-5 border-t border-white/20 bg-white/5 text-[10px] font-black uppercase tracking-widest text-gray-600 flex justify-between items-center backdrop-blur-md">
+      <div className="px-8 py-5 border-t border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/30 flex justify-between items-center backdrop-blur-md">
         <span className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-blue-500" />
           {filteredData.length} records in current view
         </span>
-        <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-600" /> Enterprise Data Sync Ready</span>
+        <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-blue-400" /> Enterprise Data Sync Ready</span>
       </div>
     </div>
   );

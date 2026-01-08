@@ -113,15 +113,17 @@ const App: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
       <header className="mb-16 text-center relative">
-        <div className="absolute top-0 right-0 flex items-center gap-3 glass-morphism px-4 py-2 rounded-2xl border border-white/10">
-          <div className={`w-2 h-2 rounded-full ${apiStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'} shadow-[0_0_10px_rgba(34,197,94,0.5)]`} />
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/70">
-            {apiStatus === 'connected' ? 'Gemini Engine Active' : 'API Configuration Missing'}
-          </span>
-        </div>
+        {apiStatus === 'error' && (
+          <div className="absolute top-0 right-0 flex items-center gap-3 glass-morphism px-4 py-2 rounded-2xl border border-red-500/20">
+            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-red-400">
+              API Error
+            </span>
+          </div>
+        )}
 
-        <div className="inline-block p-4 rounded-3xl bg-blue-600/10 border border-blue-500/20 mb-6 animate-float">
-          <Cpu className="text-blue-400" size={48} />
+        <div className={`inline-block p-4 rounded-3xl bg-blue-600/10 border border-blue-500/20 mb-6 transition-all duration-700 ${isProcessingBatch ? 'animate-spin-custom shadow-[0_0_40px_rgba(59,130,246,0.3)]' : 'animate-float'}`}>
+          <Cpu className={`${isProcessingBatch ? 'text-blue-300' : 'text-blue-400'}`} size={48} />
         </div>
         <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-4 shadow-glow">
           Resume<span className="text-blue-500">Extract</span>
@@ -177,7 +179,7 @@ const App: React.FC = () => {
           <div className="glass-morphism rounded-[2.5rem] p-10 sticky top-10 border border-white/10">
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
               <h3 className="text-xl font-black text-white flex items-center gap-3">
-                <ShieldCheck className="text-green-500" size={24} />
+                <ShieldCheck className="text-blue-400" size={24} />
                 Real-time Stats
               </h3>
               {isProcessingBatch && <Loader2 size={24} className="animate-spin text-blue-500" />}
@@ -188,13 +190,20 @@ const App: React.FC = () => {
                 <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Files in Queue</span>
                 <span className="text-2xl font-black text-white">{stats.total}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center relative">
                 <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Active Pipeline</span>
-                <span className="text-2xl font-black text-blue-400">{stats.processing}</span>
+                <div className="relative">
+                  {stats.processing > 0 && (
+                    <div className="absolute inset-0 bg-blue-500/20 blur-xl processing-pulse rounded-full" />
+                  )}
+                  <span className={`text-2xl font-black relative z-10 ${stats.processing > 0 ? 'text-blue-400' : 'text-white/40'}`}>
+                    {stats.processing}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Successful</span>
-                <span className="text-2xl font-black text-green-500">{stats.completed}</span>
+                <span className="text-2xl font-black text-white">{stats.completed}</span>
               </div>
             </div>
 
@@ -223,10 +232,16 @@ const App: React.FC = () => {
           <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {processingFiles.map((pf) => (
               <div key={pf.id} className="glass-morphism-dark rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group border border-white/5 hover:border-white/20 transition-all">
+                {(pf.status === ProcessingStatus.READING || pf.status === ProcessingStatus.EXTRACTING) && (
+                  <div className="absolute inset-0 bg-blue-500/5 animate-scan pointer-events-none" />
+                )}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4 overflow-hidden">
-                    <div className={`p-3 rounded-2xl ${pf.status === ProcessingStatus.FAILED ? 'bg-red-500/20' : 'bg-blue-500/20'}`}>
+                    <div className={`p-3 rounded-2xl relative ${pf.status === ProcessingStatus.FAILED ? 'bg-red-500/20' : 'bg-blue-500/20'}`}>
                       <FileText size={20} className={pf.status === ProcessingStatus.FAILED ? 'text-red-400' : 'text-blue-400'} />
+                      {(pf.status === ProcessingStatus.READING || pf.status === ProcessingStatus.EXTRACTING) && (
+                        <div className="absolute bottom-1 right-1 w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+                      )}
                     </div>
                     <span className="text-sm font-bold truncate text-white/80">{pf.file.name}</span>
                   </div>
@@ -250,9 +265,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
                       <div 
-                        className={`h-full transition-all duration-500 ease-out ${
-                          pf.status === ProcessingStatus.COMPLETED ? 'bg-green-500' : 'bg-blue-500'
-                        }`}
+                        className={`h-full transition-all duration-500 ease-out bg-blue-500 ${pf.status === ProcessingStatus.EXTRACTING ? 'animate-pulse' : ''}`}
                         style={{ width: `${pf.progress}%` }}
                       />
                     </div>
