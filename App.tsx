@@ -265,7 +265,7 @@ const App: React.FC = () => {
       </div>
 
       <footer className="mt-24 text-center text-white/20 font-black text-[10px] uppercase tracking-[0.6em]">
-        <p>&copy; {new Date().getFullYear()} RESUME EXTRACT AI • POWERED BY GEMINI 3 FLASH</p>
+        <p>@Elius 2026</p>
       </footer>
     </div>
   );
