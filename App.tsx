@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { 
   FileText, Loader2, CheckCircle2, ListFilter, Trash2, 
-  RefreshCw, ShieldCheck, Globe, Zap, Cpu, AlertCircle
+  RefreshCw, ShieldCheck, Globe, Zap, Cpu, AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import Dropzone from './components/Dropzone';
 import DataTable from './components/DataTable';
@@ -113,14 +114,26 @@ const App: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
       <header className="mb-16 text-center relative">
-        {apiStatus === 'error' && (
-          <div className="absolute top-0 right-0 flex items-center gap-3 glass-morphism px-4 py-2 rounded-2xl border border-red-500/20">
-            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-red-400">
-              API Error
-            </span>
-          </div>
-        )}
+        <div className="absolute top-0 right-0 flex flex-col items-end gap-4">
+          <a 
+            href="https://elius.pro" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="glass-morphism px-6 py-3 rounded-2xl border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-[0.98] group"
+          >
+            Check out on Collaboration
+            <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </a>
+
+          {apiStatus === 'error' && (
+            <div className="flex items-center gap-3 glass-morphism px-4 py-2 rounded-2xl border border-red-500/20 animate-in slide-in-from-right-10 duration-500">
+              <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-red-400">
+                API Error
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className={`inline-block p-4 rounded-3xl bg-blue-600/10 border border-blue-500/20 mb-6 transition-all duration-700 ${isProcessingBatch ? 'animate-spin-custom shadow-[0_0_40px_rgba(59,130,246,0.3)]' : 'animate-float'}`}>
           <Cpu className={`${isProcessingBatch ? 'text-blue-300' : 'text-blue-400'}`} size={48} />
